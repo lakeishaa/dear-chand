@@ -14,6 +14,7 @@ const els = {
     status: document.getElementById('status'),
     beatVol: document.getElementById('beatVol'),
     micVol: document.getElementById('micVol'),
+    vocalsPlayback: document.getElementById('vocalsPlayback'),
     mixPlayback: document.getElementById('mixPlayback'),
     downloadMix: document.getElementById('downloadMix'),
   };
