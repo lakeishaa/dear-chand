@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Make a song from this beat</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style> 
+    @font-face {
+      font-family: headster;
+      src: url(./assets/headster.otf);
+    }
+    
+    </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <h1>Make a song from this beat</h1>
+      <p>Play the instrumental, record your vocals, then listen to the mix.</p>
+    </header>
+
+    <section class="card">
+      <div class="row">
+        <label class="file">
+          <span class="label">Beat MP3</span>
+          <input id="beatFile" type="file" accept="audio/*" />
+        </label>
+        <button id="useDemo" class="ghost" type="button">Use demo beat</button>
+      </div>
+
+      <div class="controls">
+        <button id="initAudio" type="button">Enable Audio</button>
+        <button id="playBeat" type="button" disabled>Play Beat</button>
+        <button id="stopBeat" type="button" disabled>Stop</button>
+
+        <div class="meter">
+          <span>Beat</span>
+          <input id="beatVol" type="range" min="0" max="1" step="0.01" value="0.9" class="micslider" />
+        </div>
+
+        <div class="meter">
+          <span>Mic</span>
+          <input id="micVol" type="range" min="0" max="1" step="0.01" value="1.0" class="micslider" />
+        </div>
+      </div>
+
+      <div class="recordRow">
+        <button id="recordBtn" type="button" disabled>● Record</button>
+        <button id="stopRecordBtn" type="button" disabled>Stop Recording</button>
+        <span id="status" class="status">Load a beat, then enable audio.</span>
+      </div>
+
+      <details class="tips">
+        <summary>Tips</summary>
+        <ul>
+          <li>Wear headphones so the beat doesn’t leak into the mic.</li>
+          <li>Chrome/Edge work best. Safari support varies by version.</li>
+          <li>Recording format will usually be <code>webm/opus</code>.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2>Result</h2>
+      <div class="resultGrid">
+        <div>
+          <h3>Vocals (recorded)</h3>
+          <audio id="vocalsPlayback" controls></audio>
+        </div>
+        <div>
+          <h3>Mix (beat + vocals)</h3>
+          <audio id="mixPlayback" controls></audio>
+          <a id="downloadMix" class="download" href="#" download="my-song.webm" hidden>Download mix</a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <small>Prototype: Web Audio + MediaRecorder. No server needed.</small>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
