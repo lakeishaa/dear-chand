@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Painty Canvas</title>
+  <style>
+    /* ===== Custom Font (drop your font file in this path) ===== */
+    @font-face {
+  font-family: "headster";
+  src: url("./assets/headster.otf") format("opentype");
+  /* font-weight: 100;  */
+  /* font-style: normal; */
+  /* font-display: swap; */
+}
+
+    :root{
+      --bg: #ffffff;
+      --pink: #ff4fa3;
+      --panel: #f6f6f6;
+      --border: #e6e6e6;
+      /* --shadow: 0 10px 30px rgba(0,0,0,0.08); */
+      --radius: 18px;
+
+      /* Canvas sizing */
+      --canvasSize: 520px; /* <<< change for bigger/smaller square */
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: #111;
+    }
+
+    /* ===== Layout ===== */
+    .wrap{
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 26px 18px 30px;
+      gap: 16px;
+    }
+
+    h1{
+      margin: 0;
+      font-family: "cursive";
+      color: var(--pink);
+      font-weight: 100;
+      letter-spacing: 0.5px;
+      text-align: center;
+      font-size: clamp(26px, 3vw, 40px);
+      line-height: 1.05;
+    }
+
+    .app{
+      width: min(1100px, 100%);
+      display: grid;
+      grid-template-columns: 110px 1fr 110px;
+      gap: 14px;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .side{
+      width: 110px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      /* box-shadow: var(--shadow); */
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .side .label{
+      font-size: 12px;
+      opacity: 0.7;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .palette{
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .swatch{
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 10px;
+      border: 2px solid rgba(0,0,0,0.08);
+      cursor: pointer;
+      position: relative;
+      transition: transform .06s ease;
+    }
+    .swatch:active{ transform: scale(0.98); }
+    .swatch.selected{
+      outline: 3px solid rgba(0,0,0,0.18);
+      outline-offset: 2px;
+    }
+
+    /* Center canvas card */
+    .center{
+      width: 100%;
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+    }
+
+    .canvasCard{
+      width: min(var(--canvasSize), 100%);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      /* box-shadow: var(--shadow); */
+      padding: 14px;
+    }
+
+    .canvasFrame{
+      width: 100%;
+      aspect-ratio: 1 / 1; /* square */
+      border-radius: 14px;
+      border: 1px solid #ddd;
+      overflow: hidden;
+      background: #fff;
+      position: relative;
+    }
+
+    canvas{
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+      touch-action: none; /* important for touch drawing */
+    }
+
+    /* Toolbar */
+    .toolbar{
+      width: min(var(--canvasSize), 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      /* box-shadow: var(--shadow); */
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .row{
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn{
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      /* transition: transform .06s ease, box-shadow .12s ease; */
+    }
+    .btn:active{ transform: scale(0.99); }
+
+    .btn.primary{
+      background: var(--pink);
+      color: #fff;
+      border-color: rgba(0,0,0,0.06);
+    }
+
+    .toggle{
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .toggle.on{
+      background: #111;
+      color: #fff;
+      border-color: rgba(0,0,0,0.1);
+    }
+
+    .sliderWrap{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+    input[type="range"]{
+      width: 100%;
+      accent-color: var(--pink);
+    }
+    .hint{
+      font-size: 12px;
+      opacity: 0.65;
+    }
+
+    /* Responsive */
+    @media (max-width: 820px){
+      .app{ grid-template-columns: 1fr; }
+      .side{ width: 100%; max-width: 520px; }
+      .toolbar{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>make an artwork</h1>
+
+    <div class="app">
+      <!-- Left palette -->
+      <aside class="side" id="leftPanel">
+        <div class="label">Colors</div>
+        <div class="palette" id="paletteLeft"></div>
+        <div class="hint">Click a swatch to paint.</div>
+      </aside>
+
+      <!-- Center -->
+      <main class="center">
+        <div class="canvasCard">
+          <div class="canvasFrame">
+            <canvas id="paint"></canvas>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="row">
+            <button class="toggle" id="eraserBtn" type="button">Eraser</button>
+            <button class="btn" id="clearBtn" type="button">Clear</button>
+            <button class="btn primary" id="downloadBtn" type="button">Download PNG</button>
+          </div>
+
+          <div class="row sliderWrap">
+            <div style="min-width:92px;font-weight:800;">Brush</div>
+            <input id="size" type="range" min="1" max="40" value="8" />
+            <div id="sizeVal" style="min-width:34px;font-weight:800;text-align:right;">8</div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Right palette -->
+      <aside class="side" id="rightPanel">
+        <div class="label">More</div>
+        <div class="palette" id="paletteRight"></div>
+        <div class="hint">Hold mouse/touch to draw.</div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // ===== Palette (MS Paint-ish vibe) =====
+    const COLORS = [
+      "#000000","#ffffff",
+      "#ff1744","#ff9100",
+      "#ffea00","#00e676",
+      "#00b0ff","#7c4dff",
+      "#ff4fa3","#8d6e63",
+      "#607d8b","#cddc39",
+      "#26a69a","#1de9b6",
+      "#f06292","#90a4ae"
+    ];
+
+    // Split into left/right for that "palette on the sides" feel
+    const leftColors  = COLORS.slice(0, 8);
+    const rightColors = COLORS.slice(8);
+
+    const paletteLeft  = document.getElementById("paletteLeft");
+    const paletteRight = document.getElementById("paletteRight");
+
+    let currentColor = "#000000";
+    let isEraser = false;
+
+    function makeSwatch(color){
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "swatch";
+      b.style.background = color;
+
+      // Special outline for white so it's visible
+      if (color.toLowerCase() === "#ffffff") {
+        b.style.borderColor = "rgba(0,0,0,0.18)";
+      }
+
+      b.addEventListener("click", () => {
+        isEraser = false;
+        eraserBtn.classList.remove("on");
+        currentColor = color;
+        selectSwatch(color);
+      });
+
+      return b;
+    }
+
+    function renderPalettes(){
+      leftColors.forEach(c => paletteLeft.appendChild(makeSwatch(c)));
+      rightColors.forEach(c => paletteRight.appendChild(makeSwatch(c)));
+      selectSwatch(currentColor);
+    }
+
+    function selectSwatch(color){
+      document.querySelectorAll(".swatch").forEach(s => s.classList.remove("selected"));
+      document.querySelectorAll(".swatch").forEach(s => {
+        if (rgbToHex(getComputedStyle(s).backgroundColor).toLowerCase() === color.toLowerCase()){
+          s.classList.add("selected");
+        }
+      });
+    }
+
+    // ===== Canvas drawing =====
+    const canvas = document.getElementById("paint");
+    const ctx = canvas.getContext("2d", { willReadFrequently: false });
+
+    const sizeSlider = document.getElementById("size");
+    const sizeVal = document.getElementById("sizeVal");
+    const eraserBtn = document.getElementById("eraserBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    let brushSize = Number(sizeSlider.value);
+    sizeVal.textContent = brushSize;
+
+    // Keep a crisp canvas on retina displays
+    function resizeCanvasToDisplaySize() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+      const w = Math.round(rect.width * dpr);
+      const h = Math.round(rect.height * dpr);
+
+      // Save current image so resizing doesn't wipe it
+      const prev = document.createElement("canvas");
+      prev.width = canvas.width;
+      prev.height = canvas.height;
+      prev.getContext("2d").drawImage(canvas, 0, 0);
+
+      canvas.width = w;
+      canvas.height = h;
+
+      // scale drawing operations to match CSS pixels
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // Fill white background (MS Paint vibes)
+      ctx.save();
+      ctx.setTransform(1,0,0,1,0,0); // ensure actual pixels fill
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+
+      // Re-draw previous content scaled into new size
+      if (prev.width && prev.height) {
+        ctx.drawImage(prev, 0, 0, prev.width, prev.height, 0, 0, rect.width, rect.height);
+      }
+    }
+
+    // Basic stroke settings
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    let drawing = false;
+    let last = null;
+
+    function getPos(e){
+      const rect = canvas.getBoundingClientRect();
+      const p = (e.touches && e.touches[0]) ? e.touches[0] : e;
+      return {
+        x: p.clientX - rect.left,
+        y: p.clientY - rect.top
+      };
+    }
+
+    function startDraw(e){
+      drawing = true;
+      last = getPos(e);
+      drawDot(last.x, last.y); // initial tap
+    }
+
+    function endDraw(){
+      drawing = false;
+      last = null;
+      ctx.beginPath();
+    }
+
+    function drawDot(x,y){
+      ctx.beginPath();
+      ctx.fillStyle = isEraser ? "#ffffff" : currentColor;
+      ctx.arc(x, y, brushSize/2, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    function drawLine(from, to){
+      ctx.strokeStyle = isEraser ? "#ffffff" : currentColor;
+      ctx.lineWidth = brushSize;
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.stroke();
+    }
+
+    function moveDraw(e){
+      if (!drawing) return;
+      const pos = getPos(e);
+      if (!last) { last = pos; return; }
+      drawLine(last, pos);
+      last = pos;
+      e.preventDefault?.();
+    }
+
+    // Mouse
+    canvas.addEventListener("mousedown", startDraw);
+    window.addEventListener("mouseup", endDraw);
+    canvas.addEventListener("mousemove", moveDraw);
+
+    // Touch
+    canvas.addEventListener("touchstart", (e)=>{ startDraw(e); e.preventDefault(); }, { passive:false });
+    canvas.addEventListener("touchend", (e)=>{ endDraw(); e.preventDefault(); }, { passive:false });
+    canvas.addEventListener("touchmove", (e)=>{ moveDraw(e); }, { passive:false });
+
+    // Controls
+    sizeSlider.addEventListener("input", () => {
+      brushSize = Number(sizeSlider.value);
+      sizeVal.textContent = brushSize;
+    });
+
+    eraserBtn.addEventListener("click", () => {
+      isEraser = !isEraser;
+      eraserBtn.classList.toggle("on", isEraser);
+    });
+
+    clearBtn.addEventListener("click", () => {
+      // Clear to white
+      const rect = canvas.getBoundingClientRect();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, rect.width, rect.height);
+    });
+
+    downloadBtn.addEventListener("click", () => {
+      // Export exact canvas pixels (already includes white background)
+      const link = document.createElement("a");
+      link.download = "artwork.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    });
+
+    // Helper: convert rgb(...) to hex so swatch selection works reliably
+    function rgbToHex(rgb){
+      // rgb(a) string -> hex (approx). If parsing fails, return black.
+      const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+      if (!m) return "#000000";
+      const r = (+m[1]).toString(16).padStart(2,"0");
+      const g = (+m[2]).toString(16).padStart(2,"0");
+      const b = (+m[3]).toString(16).padStart(2,"0");
+      return `#${r}${g}${b}`;
+    }
+
+    // Init
+    renderPalettes();
+    // Wait a tick so canvas has layout size
+    requestAnimationFrame(() => {
+      resizeCanvasToDisplaySize();
+    });
+    window.addEventListener("resize", () => resizeCanvasToDisplaySize());
+  </script>
+</body>
+</html>

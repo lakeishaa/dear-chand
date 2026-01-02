@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>make an artwork</title>
+  <style>
+    :root{
+      --bg: #0f0f12;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.09);
+      --text: rgba(255,255,255,.88);
+      --muted: rgba(255,255,255,.55);
+      --border: rgba(255,255,255,.14);
+      --accent: #ffffff;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+      --gap: 18px;
+      --canvasSize: 520px; /* adjust canvas size here */
+    }
+
+    *{ box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 50% -10%, rgba(255,255,255,.08), transparent 60%),
+                  radial-gradient(900px 700px at 20% 120%, rgba(255,255,255,.05), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      padding: 18px 22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(10px);
+      background: rgba(10,10,12,.55);
+      z-index: 10;
+    }
+
+    h1{
+      margin:0;
+      font-size: 18px;
+      letter-spacing: .2px;
+      font-weight: 650;
+      text-transform: lowercase;
+    }
+
+    .topControls{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content:flex-end;
+    }
+
+    .pill{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      border-radius: 999px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.18);
+    }
+
+    label{
+      font-size: 12px;
+      color: var(--muted);
+      user-select:none;
+    }
+
+    select, button{
+      font: inherit;
+      color: var(--text);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      border-radius: 12px;
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    select{
+      padding-right: 30px;
+      cursor:pointer;
+    }
+
+    button{
+      cursor:pointer;
+      transition: transform .08s ease, background .2s ease;
+      background: rgba(255,255,255,.08);
+    }
+    button:hover{ background: rgba(255,255,255,.12); }
+    button:active{ transform: translateY(1px); }
+
+    main{
+      flex:1;
+      display:grid;
+      grid-template-columns: 240px 1fr 240px;
+      gap: var(--gap);
+      padding: 18px 18px 28px;
+      align-items: start;
+    }
+
+    .side{
+      position: sticky;
+      top: 78px;
+      align-self: start;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+      border-radius: var(--radius);
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .side h2{
+      margin: 6px 8px 10px;
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+
+    .stickerGrid{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 6px;
+    }
+
+    .sticker{
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      cursor: grab;
+      position: relative;
+      user-select:none;
+    }
+    .sticker:active{ cursor: grabbing; }
+    .sticker img{
+      width: 82%;
+      height: 82%;
+      object-fit: contain;
+      pointer-events: none;
+      filter: drop-shadow(0 10px 16px rgba(0,0,0,.28));
+    }
+
+    .center{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .canvasWrap{
+      width: min(var(--canvasSize), 92vw);
+      aspect-ratio: 1 / 1;
+      border-radius: 26px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      box-shadow: 0 18px 60px rgba(0,0,0,.40);
+      overflow:hidden;
+      position: relative;
+    }
+
+    canvas{
+      width: 100%;
+      height: 100%;
+      display:block;
+      background: transparent;
+    }
+
+    .hint{
+      font-size: 12px;
+      color: var(--muted);
+      text-align:center;
+      max-width: 520px;
+      line-height: 1.35;
+    }
+
+    .dropGlow{
+      outline: 2px solid rgba(255,255,255,.30);
+      box-shadow: 0 0 0 10px rgba(255,255,255,.06), 0 18px 60px rgba(0,0,0,.40);
+    }
+
+    .miniRow{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content:center;
+    }
+
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      padding: 3px 7px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-bottom-color: rgba(255,255,255,.10);
+      background: rgba(0,0,0,.25);
+      border-radius: 8px;
+      color: rgba(255,255,255,.75);
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px){
+      main{
+        grid-template-columns: 1fr;
+      }
+      .side{
+        position: relative;
+        top: 0;
+      }
+      .stickerGrid{
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>make an artwork</h1>
+
+    <div class="topControls">
+      <div class="pill">
+        <label for="bgSelect">Canvas background</label>
+        <select id="bgSelect">
+          <option value="solid:#ffffff">Solid — white</option>
+          <option value="solid:#0b0b0f">Solid — near black</option>
+          <option value="solid:#f6f2ff">Solid — lavender tint</option>
+          <option value="solid:#e9fff2">Solid — mint tint</option>
+          <option value="solid:#eaf6ff">Solid — sky tint</option>
+          <option value="gradient:softSunset">Gradient — soft sunset</option>
+          <option value="gradient:coolNight">Gradient — cool night</option>
+          <option value="pattern:dots">Pattern — dots</option>
+          <option value="pattern:grid">Pattern — grid</option>
+        </select>
+      </div>
+
+      <button id="clearBtn" title="Clear canvas">Clear</button>
+      <button id="downloadBtn">Download PNG</button>
+    </div>
+  </header>
+
+  <main>
+    <aside class="side">
+      <h2>stickers</h2>
+      <div class="stickerGrid" id="leftStickers"></div>
+    </aside>
+
+    <section class="center">
+      <div class="canvasWrap" id="canvasWrap">
+        <canvas id="artCanvas" width="1024" height="1024"></canvas>
+      </div>
+      <div class="hint">
+        Drag stickers into the square to place them. Drag placed stickers around to reposition.
+        <div class="miniRow" style="margin-top:8px;">
+          <span class="kbd">Click + drag</span>
+          <span class="kbd">Shift</span><span style="color:var(--muted); font-size:12px;">to rotate while dragging</span>
+          <span class="kbd">Alt</span><span style="color:var(--muted); font-size:12px;">to scale while dragging</span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <h2>more stickers</h2>
+      <div class="stickerGrid" id="rightStickers"></div>
+    </aside>
+  </main>
+
+  <script>
+    // =========================
+    // CONFIG YOU CAN EDIT
+    // =========================
+    const STICKER_COUNT_PER_SIDE = 5;
+    const CANVAS_W = 1024;
+    const CANVAS_H = 1024;
+
+    // If you want your own PNGs later, replace stickerData[] urls with your PNG URLs.
+    // (Keep ids unique.)
+    const stickerData = [
+      { id: "spark",  url: makeSvgDataUrl(svgSpark()) },
+      { id: "heart",  url: makeSvgDataUrl(svgHeart()) },
+      { id: "star",   url: makeSvgDataUrl(svgStar()) },
+      { id: "blob",   url: makeSvgDataUrl(svgBlob()) },
+      { id: "flower", url: makeSvgDataUrl(svgFlower()) },
+      { id: "bolt",   url: makeSvgDataUrl(svgBolt()) },
+      { id: "smile",  url: makeSvgDataUrl(svgSmile()) },
+      { id: "eye",    url: makeSvgDataUrl(svgEye()) },
+      { id: "moon",   url: makeSvgDataUrl(svgMoon()) },
+      { id: "orbit",  url: makeSvgDataUrl(svgOrbit()) },
+    ];
+
+    // =========================
+    // DOM / STATE
+    // =========================
+    const leftEl = document.getElementById("leftStickers");
+    const rightEl = document.getElementById("rightStickers");
+    const canvasWrap = document.getElementById("canvasWrap");
+    const canvas = document.getElementById("artCanvas");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+    const bgSelect = document.getElementById("bgSelect");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+    canvas.width = CANVAS_W;
+    canvas.height = CANVAS_H;
+
+    // placed items on canvas
+    // each: { img, x, y, w, h, rot, id }
+    let placed = [];
+
+    // dragging within canvas
+    let drag = {
+      active: false,
+      index: -1,
+      offsetX: 0,
+      offsetY: 0,
+      mode: "move", // move | rotate | scale
+      startX: 0,
+      startY: 0,
+      startRot: 0,
+      startW: 0,
+      startH: 0
+    };
+
+    // cache loaded images
+    const imageCache = new Map();
+
+    // =========================
+    // INIT
+    // =========================
+    renderStickerPanels();
+    setBackground(bgSelect.value);
+    redraw();
+
+    // =========================
+    // UI EVENTS
+    // =========================
+    bgSelect.addEventListener("change", () => {
+      setBackground(bgSelect.value);
+      redraw();
+    });
+
+    clearBtn.addEventListener("click", () => {
+      placed = [];
+      redraw();
+    });
+
+    downloadBtn.addEventListener("click", () => {
+      // export full-res canvas (includes background + stickers)
+      const a = document.createElement("a");
+      a.download = "make-an-artwork.png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    });
+
+    // Highlight canvas when sticker dragging over it
+    canvasWrap.addEventListener("dragenter", (e) => {
+      e.preventDefault();
+      canvasWrap.classList.add("dropGlow");
+    });
+    canvasWrap.addEventListener("dragleave", () => {
+      canvasWrap.classList.remove("dropGlow");
+    });
+    canvasWrap.addEventListener("dragover", (e) => {
+      e.preventDefault();
+    });
+
+    canvasWrap.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      canvasWrap.classList.remove("dropGlow");
+
+      const stickerId = e.dataTransfer.getData("text/stickerId");
+      if (!stickerId) return;
+
+      const sticker = stickerData.find(s => s.id === stickerId);
+      if (!sticker) return;
+
+      const img = await loadImage(sticker.url);
+      const rect = canvas.getBoundingClientRect();
+
+      // drop position in canvas pixel coordinates
+      const cx = (e.clientX - rect.left) / rect.width * CANVAS_W;
+      const cy = (e.clientY - rect.top) / rect.height * CANVAS_H;
+
+      // default size (tweak)
+      const base = Math.min(CANVAS_W, CANVAS_H);
+      const targetSize = base * 0.22; // <<< adjust default sticker size
+
+      // keep image aspect ratio
+      const ar = img.width / img.height;
+      let w = targetSize, h = targetSize;
+      if (ar > 1) h = targetSize / ar;
+      else w = targetSize * ar;
+
+      placed.push({
+        id: stickerId,
+        img,
+        x: cx,
+        y: cy,
+        w,
+        h,
+        rot: 0
+      });
+
+      redraw();
+    });
+
+    // =========================
+    // CANVAS INTERACTION (move/rotate/scale)
+    // =========================
+    canvas.addEventListener("pointerdown", (e) => {
+      const pos = getCanvasPointer(e);
+
+      // pick topmost item under pointer (iterate from end)
+      const idx = hitTest(pos.x, pos.y);
+      if (idx === -1) return;
+
+      // bring to front
+      const picked = placed.splice(idx, 1)[0];
+      placed.push(picked);
+      const topIndex = placed.length - 1;
+
+      drag.active = true;
+      drag.index = topIndex;
+
+      drag.mode = e.shiftKey ? "rotate" : (e.altKey ? "scale" : "move");
+      drag.startX = pos.x;
+      drag.startY = pos.y;
+      drag.startRot = placed[topIndex].rot;
+      drag.startW = placed[topIndex].w;
+      drag.startH = placed[topIndex].h;
+
+      // compute offset for move
+      drag.offsetX = pos.x - placed[topIndex].x;
+      drag.offsetY = pos.y - placed[topIndex].y;
+
+      canvas.setPointerCapture(e.pointerId);
+      redraw();
+    });
+
+    canvas.addEventListener("pointermove", (e) => {
+      if (!drag.active) return;
+      const pos = getCanvasPointer(e);
+      const item = placed[drag.index];
+      if (!item) return;
+
+      if (e.shiftKey) drag.mode = "rotate";
+      else if (e.altKey) drag.mode = "scale";
+      else drag.mode = "move";
+
+      if (drag.mode === "move") {
+        item.x = pos.x - drag.offsetX;
+        item.y = pos.y - drag.offsetY;
+      } else if (drag.mode === "rotate") {
+        // rotate based on angle delta around item center
+        const a0 = Math.atan2(drag.startY - item.y, drag.startX - item.x);
+        const a1 = Math.atan2(pos.y - item.y, pos.x - item.x);
+        item.rot = drag.startRot + (a1 - a0);
+      } else if (drag.mode === "scale") {
+        // scale based on distance from start
+        const d0 = Math.hypot(drag.startX - item.x, drag.startY - item.y);
+        const d1 = Math.hypot(pos.x - item.x, pos.y - item.y);
+        const s = clamp(d1 / Math.max(10, d0), 0.2, 4.0); // <<< scale bounds
+        item.w = drag.startW * s;
+        item.h = drag.startH * s;
+      }
+
+      redraw();
+    });
+
+    canvas.addEventListener("pointerup", (e) => {
+      drag.active = false;
+      drag.index = -1;
+      canvas.releasePointerCapture(e.pointerId);
+      redraw();
+    });
+
+    // prevent page from scrolling while dragging on touch
+    canvas.addEventListener("touchstart", (e) => e.preventDefault(), { passive: false });
+    canvas.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
+
+    // =========================
+    // RENDERING
+    // =========================
+    function redraw(){
+      // background first
+      drawBackground(ctx, bgSelect.value);
+
+      // then stickers
+      for (const item of placed){
+        ctx.save();
+        ctx.translate(item.x, item.y);
+        ctx.rotate(item.rot);
+        ctx.drawImage(item.img, -item.w/2, -item.h/2, item.w, item.h);
+        ctx.restore();
+      }
+
+      // optional: subtle border inside canvas
+      ctx.save();
+      ctx.globalAlpha = 0.10;
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 6;
+      ctx.strokeRect(3, 3, CANVAS_W - 6, CANVAS_H - 6);
+      ctx.restore();
+    }
+
+    function setBackground(value){
+      // just triggers redraw; background is drawn into canvas in drawBackground
+    }
+
+    function drawBackground(ctx, value){
+      ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+
+      const [kind, payload] = value.split(":");
+
+      if (kind === "solid"){
+        ctx.fillStyle = payload;
+        ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+        return;
+      }
+
+      if (kind === "gradient"){
+        if (payload === "softSunset"){
+          const g = ctx.createLinearGradient(0,0,CANVAS_W,CANVAS_H);
+          g.addColorStop(0, "#fff1f5");
+          g.addColorStop(0.45, "#f3f0ff");
+          g.addColorStop(1, "#e9fff2");
+          ctx.fillStyle = g;
+          ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+          return;
+        }
+        if (payload === "coolNight"){
+          const g = ctx.createLinearGradient(0,0,CANVAS_W,CANVAS_H);
+          g.addColorStop(0, "#0b1022");
+          g.addColorStop(0.5, "#121a35");
+          g.addColorStop(1, "#0b0b0f");
+          ctx.fillStyle = g;
+          ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+          // glow specks
+          ctx.save();
+          ctx.globalAlpha = 0.14;
+          for (let i=0;i<220;i++){
+            const x = Math.random()*CANVAS_W;
+            const y = Math.random()*CANVAS_H;
+            const r = Math.random()*2.2 + 0.4;
+            ctx.beginPath();
+            ctx.arc(x,y,r,0,Math.PI*2);
+            ctx.fillStyle = "#ffffff";
+            ctx.fill();
+          }
+          ctx.restore();
+          return;
+        }
+      }
+
+      if (kind === "pattern"){
+        // base fill
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+
+        if (payload === "dots"){
+          ctx.save();
+          ctx.globalAlpha = 0.10;
+          ctx.fillStyle = "#000";
+          const step = 28;
+          for (let y=step/2; y<CANVAS_H; y+=step){
+            for (let x=step/2; x<CANVAS_W; x+=step){
+              ctx.beginPath();
+              ctx.arc(x,y,2.2,0,Math.PI*2);
+              ctx.fill();
+            }
+          }
+          ctx.restore();
+          return;
+        }
+
+        if (payload === "grid"){
+          ctx.save();
+          ctx.globalAlpha = 0.10;
+          ctx.strokeStyle = "#000";
+          ctx.lineWidth = 1;
+          const step = 36;
+          for (let x=0; x<=CANVAS_W; x+=step){
+            ctx.beginPath();
+            ctx.moveTo(x,0);
+            ctx.lineTo(x,CANVAS_H);
+            ctx.stroke();
+          }
+          for (let y=0; y<=CANVAS_H; y+=step){
+            ctx.beginPath();
+            ctx.moveTo(0,y);
+            ctx.lineTo(CANVAS_W,y);
+            ctx.stroke();
+          }
+          ctx.restore();
+          return;
+        }
+      }
+
+      // fallback
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+    }
+
+    // =========================
+    // STICKER PANELS
+    // =========================
+    function renderStickerPanels(){
+      leftEl.innerHTML = "";
+      rightEl.innerHTML = "";
+
+      const left = stickerData.slice(0, STICKER_COUNT_PER_SIDE);
+      const right = stickerData.slice(STICKER_COUNT_PER_SIDE, STICKER_COUNT_PER_SIDE*2);
+
+      for (const s of left) leftEl.appendChild(makeStickerEl(s));
+      for (const s of right) rightEl.appendChild(makeStickerEl(s));
+    }
+
+    function makeStickerEl(sticker){
+      const wrap = document.createElement("div");
+      wrap.className = "sticker";
+      wrap.draggable = true;
+      wrap.dataset.id = sticker.id;
+
+      const img = document.createElement("img");
+      img.alt = sticker.id;
+      img.src = sticker.url;
+
+      wrap.appendChild(img);
+
+      wrap.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/stickerId", sticker.id);
+        e.dataTransfer.effectAllowed = "copy";
+      });
+
+      return wrap;
+    }
+
+    // =========================
+    // HIT TEST (rotated rectangles)
+    // =========================
+    function hitTest(x, y){
+      for (let i = placed.length - 1; i >= 0; i--){
+        const it = placed[i];
+        if (pointInRotRect(x, y, it.x, it.y, it.w, it.h, it.rot)) return i;
+      }
+      return -1;
+    }
+
+    function pointInRotRect(px, py, cx, cy, w, h, rot){
+      // transform point into item-local coordinates (inverse rotate)
+      const dx = px - cx;
+      const dy = py - cy;
+      const cos = Math.cos(-rot);
+      const sin = Math.sin(-rot);
+      const lx = dx * cos - dy * sin;
+      const ly = dx * sin + dy * cos;
+
+      return (Math.abs(lx) <= w/2) && (Math.abs(ly) <= h/2);
+    }
+
+    function getCanvasPointer(e){
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) / rect.width * CANVAS_W,
+        y: (e.clientY - rect.top) / rect.height * CANVAS_H
+      };
+    }
+
+    function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+    // =========================
+    // IMAGE LOADING
+    // =========================
+    function loadImage(url){
+      if (imageCache.has(url)) return imageCache.get(url);
+
+      const p = new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+      });
+
+      imageCache.set(url, p);
+      return p;
+    }
+
+    // =========================
+    // INLINE "PNG" (SVG DATA URL)
+    // =========================
+    function makeSvgDataUrl(svg){
+      const encoded = encodeURIComponent(svg.trim())
+        .replace(/'/g, "%27")
+        .replace(/"/g, "%22");
+      return `data:image/svg+xml;charset=utf-8,${encoded}`;
+    }
+
+    // --- Sticker SVGs (edit shapes/colors freely) ---
+    function svgSpark(){
+      return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+        <defs>
+          <radialGradient id="g" cx="50%" cy="35%" r="65%">
+            <stop offset="0" stop-color="#ffffff"/>
+            <stop offset="0.55" stop-color="#B2E2EB"/>
+            <stop offset="1" stop-color="#AD95C3"/>
+          </radialGradient>
+        </defs>
+        <rect width="512" height="512" rx="110" fill="transparent"/>
+        <path d="M256 40l38 138 138 38-138 38-38 138-38-138-138-38 138-38z"
+              fill="url(#g)" stroke="#0a0a0a" stroke-opacity=".18" stroke-width="10" />
+      </svg>`;
+    }
+    function svgHeart(){
+      return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="h" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffb3c7"/>
+            <stop offset="0.55" stop-color="#f3f0ff"/>
+            <stop offset="1" stop-color="#D8FFD6"/>
+          </linearGradient>
+        </defs>
+        <path d="M256 450s-170-92-210-204c-24-68 16-134 92-146 47-7 91 14 118 52 27-38 71-59 118-52 76 12 116 78 92 146-40 112-210 204-210 204z"
+              fill="url(#h)" stroke="#0a0a0a" stroke-opacity=".16" stroke-width="10"/>
+      </svg>`;
+    }
+    function svgStar(){
+      return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="s" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#fff7a8"/>
+            <stop offset="0.5" stop-color="#B2E2EB"/>
+            <stop offset="1" stop-color="#AD95C3"/>
+          </linearGradient>
+        </defs>
+        <path d="M256 54l62 126 139 20-101 98 24 138-124-65-124 65 24-138-101-98 139-20z"
+              fill="url(#s)" stroke="#0a0a0a" stroke-opacity=".16" stroke-width="10"/>
+      </svg>`;
+    }
+    function svgBlob(){
+      return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+        <defs>
+          <radialGradient id="b" cx="40%" cy="35%" r="70%">
+            <stop offset="0" stop-color="#D8FFD6"/>
+            <stop offset="0.6" stop-color="#B2E2EB"/>
+            <stop offset="1" stop-color="#ffffff"/>
+          </radialGradient>
+        </defs>
+        <path d="M372 88c64 42 94 102 86 170-8 68-52 144-126 176-74 32-178 20-236-44S48 220 92 150c44-70 216-104 280-62z"
+              fill="url(#b)" stroke="#0a0a0a" stroke-opacity=".14" stroke-width="10"/>
+      </svg>`;
+    }
+    function svgFlower(){
+      return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="f" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f3f0ff"/>
+            <stop offset="0.55" stop-color="#AD95C3"/>
+            <stop offset="1" stop-color="#B2E2EB"/>
+          </linearGradient>
+        </defs>
+        <g fill="url(#f)" stroke="#0a0a0a" stroke-opacity=".16" stroke-width="10">
+          <path d="M256 82c52 0 76 64 40 104-16 18-30 20-40 20s-24-2-40-20c-36-40-12-104 40-104z"/>
+          <path d="M378 150c36 40 12 104-40 104-10 0-24-2-40-20-36-40-12-104 40-104 18 0 30 6 40 20z"/>
+          <path d="M416 276c0 52-64 76-104 40-18-16-20-30-20-40s2-24 20-40c40-36 104-12 104 40z"/>
+          <path d="M338 396c-40 36-104 12-104-40 0-10 2-24 20-40 40-36 104-12 104 40 0 18-6 30-20 40z"/>
+          <path d="M256 430c-52 0-76-64-40-104 16-18 30-20 40-20s24 2 40 20c36 40 12 104-40 104z"/>
+          <path d="M134 362c-36-40-12-104 40-104 10 0 24 2 40 20 36 40 12 104-40 104-18 0-30-6-40-20z"/>
+          <path d="M96 236c0-52 64-76 104-40 18 16 20 30 20 40s-2 24-20 40c-40 36-104 12-104-40z"/>
+          <path d="M174 116c40-36 104-12 104 40 0 10-2 24-20 40-40 36-104 12-104-40 0-18 6-30 20-40z"/>
+          <circle cx="256" cy="256" r="44" fill="#ffffff"/>
+        </g>
+      </svg>`;
+    }
+    function svgBolt(){
+      return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="z" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#B2E2EB"/>
+            <stop offset="1" stop-color="#D8FFD6"/>
+          </linearGradient>
+        </defs>
+        <path d="M290 26L106 290h126l-10 196 184-264H280z"
+              fill="url(#z)" stroke="#0a0a0a" stroke-opacity=".16" stroke-width="10"/>
+      </svg>`;
+    }
+    function svgSmile(){
+      return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+        <defs>
+          <radialGradient id="m" cx="50%" cy="35%" r="70%">
+            <stop offset="0" stop-color="#ffffff"/>
+            <stop offset="0.6" stop-color="#D8FFD6"/>
+            <stop offset="1" stop-color="#B2E2EB"/>
+          </radialGradient>
+        </defs>
+        <circle cx="256" cy="256" r="200" fill="url(#m)" stroke="#0a0a0a" stroke-opacity=".16" stroke-width="10"/>
+        <circle cx="190" cy="220" r="18" fill="#0a0a0a" fill-opacity=".7"/>
+        <circle cx="322" cy="220" r="18" fill="#0a0a0a" fill-opacity=".7"/>
+        <path d="M176 304c24 54 136 54 160 0" fill="none" stroke="#0a0a0a" stroke-opacity=".6" stroke-width="14" stroke-linecap="round"/>
+      </svg>`;
+    }
+    function svgEye(){
+      return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="e" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f3f0ff"/>
+            <stop offset="1" stop-color="#AD95C3"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 256s76-120 196-120 196 120 196 120-76 120-196 120S60 256 60 256z"
+              fill="url(#e)" stroke="#0a0a0a" stroke-opacity=".16" stroke-width="10"/>
+        <circle cx="256" cy="256" r="64" fill="#ffffff" fill-opacity=".8"/>
+        <circle cx="256" cy="256" r="34" fill="#0a0a0a" fill-opacity=".7"/>
+        <circle cx="270" cy="240" r="10" fill="#ffffff" fill-opacity=".8"/>
+      </svg>`;
+    }
+    function svgMoon(){
+      return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="mo" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffffff"/>
+            <stop offset="0.55" stop-color="#B2E2EB"/>
+            <stop offset="1" stop-color="#AD95C3"/>
+          </linearGradient>
+        </defs>
+        <path d="M340 58c-84 34-142 118-126 214 16 98 104 168 202 162-48 34-116 48-180 30C118 430 54 316 78 202 102 90 216 18 340 58z"
+              fill="url(#mo)" stroke="#0a0a0a" stroke-opacity=".16" stroke-width="10"/>
+      </svg>`;
+    }
+    function svgOrbit(){
+      return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="o" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#D8FFD6"/>
+            <stop offset="0.55" stop-color="#B2E2EB"/>
+            <stop offset="1" stop-color="#f3f0ff"/>
+          </linearGradient>
+        </defs>
+        <circle cx="256" cy="256" r="58" fill="url(#o)" stroke="#0a0a0a" stroke-opacity=".14" stroke-width="10"/>
+        <ellipse cx="256" cy="256" rx="200" ry="110" fill="none" stroke="#0a0a0a" stroke-opacity=".28" stroke-width="10"/>
+        <ellipse cx="256" cy="256" rx="170" ry="170" fill="none" stroke="#0a0a0a" stroke-opacity=".18" stroke-width="10" transform="rotate(-22 256 256)"/>
+        <circle cx="420" cy="256" r="16" fill="#ffffff" fill-opacity=".9" stroke="#0a0a0a" stroke-opacity=".16" stroke-width="8"/>
+      </svg>`;
+    }
+  </script>
+</body>
+</html>
