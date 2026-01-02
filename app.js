@@ -87,7 +87,7 @@ const els = {
   els.useDemo.addEventListener('click', async () => {
     // Put your demo file at: ./assets/beat.mp3
     // If you deploy to GitHub Pages, keep the same path.
-    const demoUrl = "./assets/beat.mp3";
+    const demoUrl = "./assets/beat.wav";
     buildBeatAudio(demoUrl);
   });
   
