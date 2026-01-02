@@ -5,28 +5,209 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Make a song from this beat</title>
   <link rel="stylesheet" href="styles.css" />
-  <style> 
+  <style>
     @font-face {
       font-family: headster;
       src: url(./assets/headster.otf);
     }
-    
-    </style>
+    h1, p { text-align: center; }
+    a { color: #FA3B8A; }
+
+    :root{
+  --bg: #ffffff;
+  --panel: #f6f6f6;
+  --border: #e6e6e6;
+  --radius: 18px;
+}
+
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  background: var(--bg);
+  color:#111;
+}
+
+.wrap{
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+
+.hero{
+  margin: 10px 0 18px;
+}
+
+.card{
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin: 14px 0;
+}
+
+.row{
+  display:flex;
+  gap: 12px;
+  align-items:center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.controls{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+button{
+  appearance:none;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor:pointer;
+}
+
+button:disabled{
+  opacity: 0.5;
+  cursor:not-allowed;
+}
+
+button.ghost{
+  background: transparent;
+}
+
+.meter{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+  background:#fff;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 12px;
+}
+
+.micslider{
+  width: 170px;
+}
+
+.recordRow{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.status{
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.tips summary{
+  cursor:pointer;
+  font-weight: 700;
+  margin-top: 14px;
+}
+
+.resultGrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 860px){
+  .resultGrid{ grid-template-columns: 1fr; }
+}
+
+.download{
+  display:inline-block;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--border);
+  text-decoration:none;
+  color:#111;
+  font-weight: 700;
+}
+
+.foot{
+  text-align:center;
+  margin-top: 26px;
+  opacity: 0.75;
+}
+
+.fileBtn{
+  display:inline-flex;
+  align-items:center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background:#fff;
+  border: 1px solid var(--border);
+  cursor:pointer;
+  font-weight: 700;
+}
+.fileBtn input{
+  display:none;
+}
+
+.dropzone{
+  border: 1.5px dashed #ddd;
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  user-select:none;
+  background: rgba(255,255,255,0.7);
+}
+.dropzone.dragover{
+  border-color: #FA3B8A;
+  background: rgba(250,59,138,0.06);
+}
+
+.inlineRow{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.tinyNote{
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 10px;
+}
+
+.fileBtn{
+  opacity:0;
+}
+
+  </style>
 </head>
+
 <body>
   <main class="wrap">
     <header class="hero">
-      <h1>Make a song from this beat</h1>
+      <h1 style="font-family:headster;">Make a song from this beat</h1>
       <p>Play the instrumental, record your vocals, then listen to the mix.</p>
     </header>
 
     <section class="card">
       <div class="row">
-        <label class="file">
+        <button id="useDemo" class="ghost" type="button">
+          Click to use this beat created by Mikhael
+        </button>
+
+        <label class="fileBtn">
           <span class="label">Beat MP3</span>
           <input id="beatFile" type="file" accept="audio/*" />
         </label>
-        <button id="useDemo" class="ghost" type="button">Use demo beat</button>
       </div>
 
       <div class="controls">
@@ -40,7 +221,7 @@
         </div>
 
         <div class="meter">
-          <span>Mic</span>
+          <span>Mic / Vocals</span>
           <input id="micVol" type="range" min="0" max="1" step="0.01" value="1.0" class="micslider" />
         </div>
       </div>
@@ -52,35 +233,66 @@
       </div>
 
       <details class="tips">
-        <summary>Tips</summary>
+        <summary>Instructions</summary>
         <ul>
+          <li>1) Click to use this beat created by Mikhael</li>
+          <li>2) Click <b>Enable Audio</b></li>
+          <li>3) Play Beat</li>
+          <li>4) Record vocals OR drop an iPhone recording in “Upload vocals”</li>
+          <li>5) Stop recording (or click “Use uploaded vocals”)</li>
+          <li>6) Download mix</li>
           <li>Wear headphones so the beat doesn’t leak into the mic.</li>
           <li>Chrome/Edge work best. Safari support varies by version.</li>
-          <li>Recording format will usually be <code>webm/opus</code>.</li>
+          <li>If you record here, the raw recording may be <code>webm/opus</code> in Chrome.</li>
         </ul>
       </details>
     </section>
 
     <section class="card">
       <h2>Result</h2>
+
       <div class="resultGrid">
         <div>
           <h3>Vocals (recorded)</h3>
           <audio id="vocalsPlayback" controls></audio>
+
+          <h3 style="margin-top:18px;">Vocals (upload / drop audio)</h3>
+
+          <div id="vocalsDrop" class="dropzone">
+            Drop your iPhone recording here<br />
+            <small>(or click to choose a file)</small>
+            <input id="vocalsFile" type="file" accept="audio/*" style="display:none;" />
+          </div>
+
+          <div class="inlineRow" style="margin-top:10px;">
+            <button id="useUploadedVocals" type="button" disabled>Use uploaded vocals for mix</button>
+            <button id="clearUploadedVocals" type="button" disabled>Clear</button>
+          </div>
+
+          <span id="uploadStatus" class="status" style="display:block; margin-top:8px;">
+            No uploaded vocals yet.
+          </span>
+
+          <audio id="uploadedVocalsPlayback" controls style="margin-top:10px; width:100%;"></audio>
         </div>
+
         <div>
           <h3>Mix (beat + vocals)</h3>
           <audio id="mixPlayback" controls></audio>
-          <a id="downloadMix" class="download" href="#" download="my-song.webm" hidden>Download mix</a>
+          <a id="downloadMix" class="download" href="#" download="my-song.wav" hidden>Download mix</a>
+
+          <p class="tinyNote">
+            Mix is exported as <b>WAV</b> for compatibility (iPhone-friendly).
+          </p>
         </div>
       </div>
     </section>
 
     <footer class="foot">
-      <small>Prototype: Web Audio + MediaRecorder. No server needed.</small>
+      <small>Dear Chand, happy birthday from Lake and Mikhy ♡</small>
     </footer>
   </main>
 
-  <script src="app.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
